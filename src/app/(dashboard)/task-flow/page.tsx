@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { TaskFlowBoard } from "@/components/TaskFlowBoard"
 import { AddCaseDialog } from "@/components/AddCaseDialog"
 
+export const dynamic = 'force-dynamic'
+
 export default async function TaskFlowPage() {
     const cases = await prisma.case.findMany({
         include: { client: true, advisor: true }

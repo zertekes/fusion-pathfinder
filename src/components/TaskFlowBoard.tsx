@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { CaseDetailsDialog } from "@/components/CaseDetailsDialog"
 import { Case, Client, User } from "@prisma/client"
 import {
     DndContext,
@@ -56,6 +57,12 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
     const router = useRouter()
     const [cases, setCases] = useState<CaseWithRelations[]>(initialCases)
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [selectedCase, setSelectedCase] = useState<CaseWithRelations | null>(null)
+
+    // Sync state with props when initialCases changes (e.g. after router.refresh)
+    useEffect(() => {
+        setCases(initialCases)
+    }, [initialCases])
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -89,6 +96,7 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
     }
 
     async function updateCaseStatus(caseId: string, newStatus: string) {
+        // Optimistic update
         setCases(cases.map(c => c.id === caseId ? { ...c, status: newStatus } : c))
 
         try {
@@ -104,42 +112,53 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
     }
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-        >
-            <div className="flex h-full gap-4 overflow-x-auto pb-4">
-                {COLUMNS.map((columnId) => (
-                    <div key={columnId} className="w-80 flex-shrink-0">
-                        <Card className="h-full bg-muted/50">
-                            <CardHeader className="p-4">
-                                <CardTitle className="text-sm font-medium uppercase text-muted-foreground whitespace-nowrap">
-                                    {columnId}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-2 space-y-2 min-h-[200px]">
-                                <DroppableColumn id={columnId}>
-                                    {cases
-                                        .filter((c) => c.status === columnId)
-                                        .map((c) => (
-                                            <DraggableCase key={c.id} caseItem={c} />
-                                        ))}
-                                </DroppableColumn>
-                            </CardContent>
-                        </Card>
-                    </div>
-                ))}
-            </div>
-            <DragOverlay>
-                {activeId ? (
-                    <div className="p-4 bg-background border rounded shadow">
-                        Dragging...
-                    </div>
-                ) : null}
-            </DragOverlay>
-        </DndContext>
+        <>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCorners}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+            >
+                <div className="flex h-full gap-4 overflow-x-auto pb-4">
+                    {COLUMNS.map((columnId) => (
+                        <div key={columnId} className="w-80 flex-shrink-0">
+                            <Card className="h-full bg-muted/50">
+                                <CardHeader className="p-4">
+                                    <CardTitle className="text-sm font-medium uppercase text-muted-foreground whitespace-nowrap">
+                                        {columnId}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-2 space-y-2 min-h-[200px]">
+                                    <DroppableColumn id={columnId}>
+                                        {cases
+                                            .filter((c) => c.status === columnId)
+                                            .map((c) => (
+                                                <DraggableCase
+                                                    key={c.id}
+                                                    caseItem={c}
+                                                    onClick={() => setSelectedCase(c)}
+                                                />
+                                            ))}
+                                    </DroppableColumn>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ))}
+                </div>
+                <DragOverlay>
+                    {activeId ? (
+                        <div className="p-4 bg-background border rounded shadow">
+                            Dragging...
+                        </div>
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
+            <CaseDetailsDialog
+                caseItem={selectedCase}
+                open={!!selectedCase}
+                onOpenChange={(open) => !open && setSelectedCase(null)}
+            />
+        </>
     )
 }
 
@@ -155,7 +174,7 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
     )
 }
 
-function DraggableCase({ caseItem }: { caseItem: CaseWithRelations }) {
+function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onClick: () => void }) {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: caseItem.id,
     })
@@ -165,16 +184,12 @@ function DraggableCase({ caseItem }: { caseItem: CaseWithRelations }) {
 
     return (
         <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-            <Card className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow">
+            <Card
+                className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+                onClick={onClick}
+            >
                 <CardContent className="p-4">
-                    <div className="font-medium">{caseItem.title}</div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                        {caseItem.client.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2 flex justify-between">
-                        <span>£{caseItem.value?.toLocaleString() ?? 0}</span>
-                        <span>{new Date(caseItem.updatedAt).toLocaleDateString()}</span>
-                    </div>
+                    <div className="font-medium text-center">{caseItem.client.name}</div>
                 </CardContent>
             </Card>
         </div>

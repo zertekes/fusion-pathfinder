@@ -33,49 +33,25 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [selectedClientId, setSelectedClientId] = useState<string>("")
+    const [selectedStatus, setSelectedStatus] = useState<string>(COLUMNS[0])
 
     async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setLoading(true)
-        const formData = new FormData(e.currentTarget)
 
-        const clientId = formData.get("clientId") as string
-        const client = clients.find(c => c.id === clientId)
+        const client = clients.find(c => c.id === selectedClientId)
         const title = client ? client.name : "New Case"
 
         const data = {
             title: title,
-            clientId: clientId,
-            status: formData.get("status"),
+            clientId: selectedClientId,
+            status: selectedStatus,
             value: 0,
-            advisorId: "user-id-placeholder", // In a real app, this would come from the session
+            advisorId: "user-id-placeholder",
         }
 
-        // We need the current user ID for the advisorId. 
-        // Since this is a client component, we can't easily get the session here without passing it down or using a provider.
-        // For now, let's fetch the session in the API route or pass it from the page.
-        // Actually, the API route usually handles assigning the current user if not provided, 
-        // but our current API route expects advisorId.
-        // Let's update the API route to handle this or pass the user ID.
-        // For simplicity in this step, let's assume the API handles it or we pass a placeholder 
-        // and the API overrides it with the session user.
-
-        // Let's check the API route implementation later. For now, we'll send what we have.
-
         try {
-            // We need to fetch the current user's ID to pass as advisorId, 
-            // OR we update the API to use the session user.
-            // Let's try to use the existing API.
-            // The existing API at /api/cases/route.ts expects advisorId.
-            // We can get the session in the component if we use SessionProvider, but that might be overkill.
-            // A better approach for this specific app structure:
-            // The page.tsx is server-side, it can pass the current userId to this component.
-
-            // Wait, let's look at how AddClientDialog worked. It didn't need a user ID.
-            // But Case needs an advisor.
-
-            // Let's update the component to accept userId as a prop.
-
             const res = await fetch("/api/cases", {
                 method: "POST",
                 body: JSON.stringify(data),
@@ -84,6 +60,11 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
             if (res.ok) {
                 setOpen(false)
                 router.refresh()
+                // Reset form
+                setSelectedClientId("")
+                setSelectedStatus(COLUMNS[0])
+            } else {
+                console.error("Failed to create case")
             }
         } catch (error) {
             console.error(error)
@@ -91,6 +72,8 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
             setLoading(false)
         }
     }
+
+    const isValid = selectedClientId !== "" && selectedStatus !== ""
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -113,7 +96,12 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                                 Client
                             </Label>
                             <div className="col-span-3">
-                                <Select name="clientId" required>
+                                <Select
+                                    name="clientId"
+                                    required
+                                    value={selectedClientId}
+                                    onValueChange={setSelectedClientId}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a client" />
                                     </SelectTrigger>
@@ -132,7 +120,12 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                                 Status
                             </Label>
                             <div className="col-span-3">
-                                <Select name="status" required defaultValue={COLUMNS[0]}>
+                                <Select
+                                    name="status"
+                                    required
+                                    value={selectedStatus}
+                                    onValueChange={setSelectedStatus}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
@@ -150,7 +143,7 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                         <input type="hidden" name="advisorId" value="current-user-id" />
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading || !isValid}>
                             {loading ? "Creating..." : "Create Card"}
                         </Button>
                     </DialogFooter>
