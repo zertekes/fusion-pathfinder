@@ -12,7 +12,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+
 import { Label } from "@/components/ui/label"
 import {
     Select,
@@ -39,11 +39,15 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
         setLoading(true)
         const formData = new FormData(e.currentTarget)
 
+        const clientId = formData.get("clientId") as string
+        const client = clients.find(c => c.id === clientId)
+        const title = client ? client.name : "New Case"
+
         const data = {
-            title: formData.get("title"),
-            clientId: formData.get("clientId"),
+            title: title,
+            clientId: clientId,
             status: formData.get("status"),
-            value: parseFloat(formData.get("value") as string) || 0,
+            value: 0,
             advisorId: "user-id-placeholder", // In a real app, this would come from the session
         }
 
@@ -105,12 +109,6 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="title" className="text-right">
-                                Title
-                            </Label>
-                            <Input id="title" name="title" className="col-span-3" required placeholder="e.g. Mortgage Application" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="clientId" className="text-right">
                                 Client
                             </Label>
@@ -147,12 +145,6 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="value" className="text-right">
-                                Value (£)
-                            </Label>
-                            <Input id="value" name="value" type="number" className="col-span-3" placeholder="0.00" />
                         </div>
                         {/* Hidden input for advisorId - we'll handle this in the parent or API */}
                         <input type="hidden" name="advisorId" value="current-user-id" />
