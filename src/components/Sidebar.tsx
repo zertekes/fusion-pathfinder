@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Briefcase, CheckSquare, Mail, Calendar, FileUp } from "lucide-react"
+import { LayoutDashboard, Users, Briefcase, CheckSquare, Mail, Calendar, FileUp, Settings, KanbanSquare } from "lucide-react"
 
 const routes = [
     {
@@ -31,6 +31,12 @@ const routes = [
         color: "text-orange-700",
     },
     {
+        label: "Task Flow",
+        icon: KanbanSquare,
+        href: "/task-flow",
+        color: "text-indigo-500",
+    },
+    {
         label: "Email",
         icon: Mail,
         href: "/email",
@@ -43,9 +49,9 @@ const routes = [
         color: "text-green-700",
     },
     {
-        label: "Migration",
-        icon: FileUp,
-        href: "/migration",
+        label: "Settings",
+        icon: Settings,
+        href: "/settings",
         color: "text-gray-500",
     },
 ]
