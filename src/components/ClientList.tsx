@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Client, Case } from "@prisma/client"
 import {
     Table,
@@ -27,6 +27,10 @@ interface ClientListProps {
 export function ClientList({ initialClients }: ClientListProps) {
     const [clients, setClients] = useState<ClientWithCases[]>(initialClients)
     const [search, setSearch] = useState("")
+
+    useEffect(() => {
+        setClients(initialClients)
+    }, [initialClients])
 
     const filteredClients = clients.filter((client) =>
         client.name.toLowerCase().includes(search.toLowerCase()) ||
