@@ -27,7 +27,7 @@ interface TaskFlowBoardProps {
     initialCases: CaseWithRelations[]
 }
 
-const COLUMNS = [
+export const COLUMNS = [
     "Contact",
     "Pre-IC",
     "Doc collection",
