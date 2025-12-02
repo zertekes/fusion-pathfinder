@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddClientDialog } from "@/components/AddClientDialog"
+import Link from "next/link"
 
 type ClientWithCases = Client & {
     cases: Case[]
@@ -77,7 +78,9 @@ export function ClientList({ initialClients }: ClientListProps) {
                                     <TableCell>{client.phone}</TableCell>
                                     <TableCell>{client.cases.length}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm">View</Button>
+                                        <Link href={`/clients/${client.id}`}>
+                                            <Button variant="ghost" size="sm">View</Button>
+                                        </Link>
                                     </TableCell>
                                 </TableRow>
                             ))}
