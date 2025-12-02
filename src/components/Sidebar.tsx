@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Briefcase, CheckSquare, Mail, Calendar, FileUp, Settings, KanbanSquare } from "lucide-react"
+import { LayoutDashboard, Users, Briefcase, Mail, Calendar, FileUp, Settings, KanbanSquare } from "lucide-react"
 
 const routes = [
     {
@@ -24,12 +24,7 @@ const routes = [
         href: "/cases",
         color: "text-pink-700",
     },
-    {
-        label: "Tasks",
-        icon: CheckSquare,
-        href: "/tasks",
-        color: "text-orange-700",
-    },
+
     {
         label: "Task Flow",
         icon: KanbanSquare,
