@@ -55,9 +55,26 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Client ID is required' }, { status: 400 })
         }
 
+        // Generate Case Number
+        const lastCase = await prisma.case.findFirst({
+            where: { caseNumber: { not: null } },
+            orderBy: { caseNumber: 'desc' }
+        })
+
+        let nextNumber = 1
+        if (lastCase && lastCase.caseNumber) {
+            const match = lastCase.caseNumber.match(/HT(\d+)/)
+            if (match) {
+                nextNumber = parseInt(match[1]) + 1
+            }
+        }
+
+        const caseNumber = `HT${nextNumber.toString().padStart(4, '0')}`
+
         const newCase = await prisma.case.create({
             data: {
                 title: body.title,
+                caseNumber: caseNumber,
                 status: body.status || 'LEAD',
                 value: body.value,
                 clientId: clientId,

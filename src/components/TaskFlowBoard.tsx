@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { CaseDetailsSheet } from "@/components/CaseDetailsSheet"
 import { CaseDetailsDialog } from "@/components/CaseDetailsDialog"
 import { Case, Client, User } from "@prisma/client"
 import {
@@ -53,6 +54,7 @@ export const COLUMNS = [
 // - [ ] Create Task Flow Components <!-- id: 21 -->
 //     - [x] Create TaskFlowBoard.tsx <!-- id: 22 -->
 //     - [ ] Create src/app/(dashboard)/task-flow/page.tsx <!-- id: 23 -->
+
 export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
     const router = useRouter()
     const [cases, setCases] = useState<CaseWithRelations[]>(initialCases)
@@ -136,7 +138,20 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
                                                 <DraggableCase
                                                     key={c.id}
                                                     caseItem={c}
-                                                    onClick={() => setSelectedCase(c)}
+                                                    onClick={(e, type) => {
+                                                        if (type === 'card') {
+                                                            // Optional: open full dialog on card click if needed, 
+                                                            // or just do nothing if only number click is desired.
+                                                            // For now, let's keep it consistent: card click -> full dialog? 
+                                                            // User asked for "click on it open the ticket details on the right side".
+                                                            // Let's make card click open the sheet too for better UX, or maybe the dialog?
+                                                            // The user said "when the user clicks on it [the number] open the ticket details".
+                                                            // Let's stick to the sheet for now for both.
+                                                            setSelectedCase(c)
+                                                        } else if (type === 'number') {
+                                                            setSelectedCase(c)
+                                                        }
+                                                    }}
                                                 />
                                             ))}
                                     </DroppableColumn>
@@ -153,7 +168,7 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
                     ) : null}
                 </DragOverlay>
             </DndContext>
-            <CaseDetailsDialog
+            <CaseDetailsSheet
                 caseItem={selectedCase}
                 open={!!selectedCase}
                 onOpenChange={(open) => !open && setSelectedCase(null)}
@@ -174,7 +189,7 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
     )
 }
 
-function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onClick: () => void }) {
+function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onClick: (e: React.MouseEvent, type: 'card' | 'number') => void }) {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: caseItem.id,
     })
@@ -186,10 +201,24 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
         <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
             <Card
                 className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
-                onClick={onClick}
+                onClick={(e) => onClick(e, 'card')}
             >
                 <CardContent className="p-4">
-                    <div className="font-medium text-center">{caseItem.client.name}</div>
+                    <div className="font-medium text-center">
+                        {caseItem.caseNumber && (
+                            <span
+                                className="mr-2 text-primary text-sm font-bold cursor-pointer hover:underline"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                    e.stopPropagation() // Prevent card click
+                                    onClick(e, 'number')
+                                }}
+                            >
+                                {caseItem.caseNumber}
+                            </span>
+                        )}
+                        {caseItem.client.name}
+                    </div>
                 </CardContent>
             </Card>
         </div>
