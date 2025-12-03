@@ -73,6 +73,7 @@ model Client {
 
 model Case {
   id        String   @id @default(cuid())
+  caseNumber String?  @unique // Format: HTxxxx
   title     String
   status    String   @default("LEAD") // LEAD, APPLICATION, UNDERWRITING, OFFER, COMPLETED
   value     Float?
