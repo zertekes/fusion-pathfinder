@@ -34,12 +34,33 @@ export async function POST(request: Request) {
         console.log("Received case creation request:", body)
         console.log("Using advisorId:", advisorId)
 
+        let clientId = body.clientId
+
+        if (body.newClient) {
+            console.log("Creating new client:", body.newClient)
+            const newClient = await prisma.client.create({
+                data: {
+                    name: body.newClient.name,
+                    name2: body.newClient.name2,
+                    name3: body.newClient.name3,
+                    email: body.newClient.email,
+                    phone: body.newClient.phone,
+                }
+            })
+            clientId = newClient.id
+            console.log("New client created:", newClient)
+        }
+
+        if (!clientId) {
+            return NextResponse.json({ error: 'Client ID is required' }, { status: 400 })
+        }
+
         const newCase = await prisma.case.create({
             data: {
                 title: body.title,
                 status: body.status || 'LEAD',
                 value: body.value,
-                clientId: body.clientId,
+                clientId: clientId,
                 advisorId: advisorId,
             },
         })

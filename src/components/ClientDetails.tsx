@@ -27,6 +27,8 @@ export function ClientDetails({ client }: ClientDetailsProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
         name: client.name || "",
+        name2: client.name2 || "",
+        name3: client.name3 || "",
         email: client.email || "",
         phone: client.phone || "",
         address: client.address || "",
@@ -67,6 +69,8 @@ export function ClientDetails({ client }: ClientDetailsProps) {
     const handleCancel = () => {
         setFormData({
             name: client.name || "",
+            name2: client.name2 || "",
+            name3: client.name3 || "",
             email: client.email || "",
             phone: client.phone || "",
             address: client.address || "",
@@ -85,14 +89,35 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                         </Button>
                     </Link>
                     {isEditing ? (
-                        <Input
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            className="text-3xl font-bold tracking-tight h-auto py-2 px-4 w-[400px]"
-                        />
+                        <div className="space-y-2">
+                            <Input
+                                name="name"
+                                placeholder="Client Name 1 (Required)"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className="text-3xl font-bold tracking-tight h-auto py-2 px-4 w-[400px]"
+                            />
+                            <Input
+                                name="name2"
+                                placeholder="Client Name 2 (Optional)"
+                                value={formData.name2}
+                                onChange={handleInputChange}
+                                className="text-xl font-medium h-auto py-1 px-4 w-[400px]"
+                            />
+                            <Input
+                                name="name3"
+                                placeholder="Client Name 3 (Optional)"
+                                value={formData.name3}
+                                onChange={handleInputChange}
+                                className="text-xl font-medium h-auto py-1 px-4 w-[400px]"
+                            />
+                        </div>
                     ) : (
-                        <h2 className="text-3xl font-bold tracking-tight">{client.name}</h2>
+                        <div>
+                            <h2 className="text-3xl font-bold tracking-tight">{client.name}</h2>
+                            {client.name2 && <h3 className="text-xl text-muted-foreground">{client.name2}</h3>}
+                            {client.name3 && <h3 className="text-xl text-muted-foreground">{client.name3}</h3>}
+                        </div>
                     )}
                 </div>
                 {!isEditing ? (

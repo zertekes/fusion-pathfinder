@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AddClientDialog } from "@/components/AddClientDialog"
+
 import Link from "next/link"
 
 type ClientWithCases = Client & {
@@ -52,7 +52,6 @@ export function ClientList({ initialClients }: ClientListProps) {
                         />
                     </div>
                 </div>
-                <AddClientDialog />
             </div>
 
             <Card>

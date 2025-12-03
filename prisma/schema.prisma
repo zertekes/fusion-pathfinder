@@ -60,6 +60,8 @@ model VerificationToken {
 model Client {
   id        String   @id @default(cuid())
   name      String
+  name2     String?
+  name3     String?
   email     String?
   phone     String?
   address   String?

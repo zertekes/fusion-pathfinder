@@ -21,7 +21,7 @@ export async function PATCH(
         }
 
         const body = await request.json()
-        const { name, email, phone, address, notes } = body
+        const { name, name2, name3, email, phone, address, notes } = body
 
         const client = await prisma.client.update({
             where: {
@@ -29,6 +29,8 @@ export async function PATCH(
             },
             data: {
                 name,
+                name2,
+                name3,
                 email,
                 phone,
                 address,
