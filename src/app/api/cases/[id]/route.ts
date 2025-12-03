@@ -12,11 +12,15 @@ export async function PATCH(
         // Add auth check here if needed
 
         const body = await request.json()
-        const { status } = body
+        const { status, title, value } = body
 
         const updatedCase = await prisma.case.update({
             where: { id: params.id },
-            data: { status },
+            data: {
+                status,
+                title,
+                value
+            },
         })
 
         return NextResponse.json(updatedCase)

@@ -207,7 +207,7 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
                     <div className="font-medium text-center">
                         {caseItem.caseNumber && (
                             <span
-                                className="mr-2 text-primary text-sm font-bold cursor-pointer hover:underline"
+                                className="mr-2 text-purple-600 text-sm font-bold cursor-pointer hover:underline"
                                 onPointerDown={(e) => e.stopPropagation()}
                                 onClick={(e) => {
                                     e.stopPropagation() // Prevent card click

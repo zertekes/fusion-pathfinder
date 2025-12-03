@@ -27,13 +27,57 @@ interface CaseDetailsSheetProps {
     onOpenChange: (open: boolean) => void
 }
 
+import { COLUMNS } from "./TaskFlowBoard"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSheetProps) {
     const router = useRouter()
     const [isDeleteMode, setIsDeleteMode] = useState(false)
     const [deleteConfirmation, setDeleteConfirmation] = useState("")
     const [isDeleting, setIsDeleting] = useState(false)
 
+    // Edit Mode State
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+    const [editData, setEditData] = useState({
+        title: "",
+        status: "",
+        value: 0
+    })
+
+    // Initialize edit data when opening or switching to edit mode
+    if (caseItem && open && !isEditMode && (editData.title !== caseItem.title)) {
+        setEditData({
+            title: caseItem.title,
+            status: caseItem.status,
+            value: caseItem.value || 0
+        })
+    }
+
     if (!caseItem) return null
+
+    const handleSave = async () => {
+        setIsSaving(true)
+        try {
+            const res = await fetch(`/api/cases/${caseItem.id}`, {
+                method: "PATCH",
+                body: JSON.stringify(editData),
+            })
+
+            if (res.ok) {
+                setIsEditMode(false)
+                router.refresh()
+            } else {
+                console.error("Failed to update case")
+                alert("Failed to update case")
+            }
+        } catch (error) {
+            console.error("Error updating case:", error)
+            alert("Error updating case")
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     const handleDelete = async () => {
         if (deleteConfirmation !== "DELETE") return
@@ -66,6 +110,7 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
             if (!val) {
                 setIsDeleteMode(false)
                 setDeleteConfirmation("")
+                setIsEditMode(false)
             }
             onOpenChange(val)
         }}>
@@ -81,15 +126,52 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Title:</span>
-                            <span className="col-span-3">{caseItem.title}</span>
+                            {isEditMode ? (
+                                <Input
+                                    value={editData.title}
+                                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                                    className="col-span-3"
+                                />
+                            ) : (
+                                <span className="col-span-3">{caseItem.title}</span>
+                            )}
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Status:</span>
-                            <span className="col-span-3">{caseItem.status}</span>
+                            {isEditMode ? (
+                                <div className="col-span-3">
+                                    <Select
+                                        value={editData.status}
+                                        onValueChange={(val) => setEditData({ ...editData, status: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {COLUMNS.map((col) => (
+                                                <SelectItem key={col} value={col}>
+                                                    {col}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            ) : (
+                                <span className="col-span-3">{caseItem.status}</span>
+                            )}
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Value:</span>
-                            <span className="col-span-3">£{caseItem.value?.toLocaleString() ?? 0}</span>
+                            {isEditMode ? (
+                                <Input
+                                    type="number"
+                                    value={editData.value}
+                                    onChange={(e) => setEditData({ ...editData, value: parseFloat(e.target.value) || 0 })}
+                                    className="col-span-3"
+                                />
+                            ) : (
+                                <span className="col-span-3">£{caseItem.value?.toLocaleString() ?? 0}</span>
+                            )}
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Advisor:</span>
@@ -121,12 +203,32 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
                 <SheetFooter className="flex-col sm:flex-col gap-2 sm:space-x-0">
                     {!isDeleteMode ? (
                         <div className="flex gap-2 justify-end w-full">
-                            <Button variant="outline" onClick={() => alert("Edit functionality coming soon!")}>
-                                Edit
-                            </Button>
-                            <Button variant="destructive" onClick={() => setIsDeleteMode(true)}>
-                                Delete
-                            </Button>
+                            {isEditMode ? (
+                                <>
+                                    <Button variant="ghost" onClick={() => setIsEditMode(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button onClick={handleSave} disabled={isSaving}>
+                                        {isSaving ? "Saving..." : "Save"}
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button variant="outline" onClick={() => {
+                                        setEditData({
+                                            title: caseItem.title,
+                                            status: caseItem.status,
+                                            value: caseItem.value || 0
+                                        })
+                                        setIsEditMode(true)
+                                    }}>
+                                        Edit
+                                    </Button>
+                                    <Button variant="destructive" onClick={() => setIsDeleteMode(true)}>
+                                        Delete
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="space-y-4 w-full border rounded-md p-4 bg-destructive/10">
