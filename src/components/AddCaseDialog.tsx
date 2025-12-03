@@ -64,10 +64,13 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                 setSelectedClientId("")
                 setSelectedStatus(COLUMNS[0])
             } else {
-                console.error("Failed to create case")
+                const errorData = await res.json()
+                console.error("Failed to create case:", errorData)
+                alert(`Failed to create case: ${errorData.error || "Unknown error"}`)
             }
         } catch (error) {
-            console.error(error)
+            console.error("Error submitting form:", error)
+            alert("An error occurred. Check console.")
         } finally {
             setLoading(false)
         }

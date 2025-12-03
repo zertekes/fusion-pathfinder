@@ -11,6 +11,8 @@ interface ClientPageProps {
     }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function ClientPage({ params }: ClientPageProps) {
     const client = await prisma.client.findUnique({
         where: {
@@ -88,9 +90,12 @@ export default async function ClientPage({ params }: ClientPageProps) {
                                 <CardHeader className="p-4">
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="text-base font-medium">{c.title}</CardTitle>
-                                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-secondary">
+                                    </div>
+                                    <div className="mt-2">
+                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Task</span>
+                                        <div className="text-sm font-semibold text-primary mt-1 px-2 py-1 bg-secondary rounded-md inline-block">
                                             {c.status}
-                                        </span>
+                                        </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-4 pt-0">

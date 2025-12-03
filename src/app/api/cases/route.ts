@@ -31,6 +31,8 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
+        console.log("Received case creation request:", body)
+        console.log("Using advisorId:", advisorId)
 
         const newCase = await prisma.case.create({
             data: {
@@ -41,6 +43,7 @@ export async function POST(request: Request) {
                 advisorId: advisorId,
             },
         })
+        console.log("Case created successfully:", newCase)
         return NextResponse.json(newCase)
     } catch (error) {
         console.error("Failed to create case", error)
