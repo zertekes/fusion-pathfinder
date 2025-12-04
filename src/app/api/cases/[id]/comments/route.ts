@@ -24,13 +24,6 @@ export async function POST(
             return NextResponse.json({ error: "Content is required" }, { status: 400 })
         }
 
-        console.log("Prisma models:", Object.keys(prisma))
-
-        if (!prisma.caseActivity) {
-            console.error("prisma.caseActivity is undefined!")
-            return NextResponse.json({ error: "Server Error: CaseActivity model missing" }, { status: 500 })
-        }
-
         const activity = await prisma.caseActivity.create({
             data: {
                 caseId: params.id,

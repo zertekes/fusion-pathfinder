@@ -20,6 +20,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   cases         Case[]
   tasks         Task[]
+  activities    CaseActivity[]
 }
 
 model Account {
@@ -113,4 +114,15 @@ model Event {
   provider    String?  // OUTLOOK, GOOGLE
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model CaseActivity {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  type      String   // COMMENT, SYSTEM
+  content   String
+  createdAt DateTime @default(now())
 }

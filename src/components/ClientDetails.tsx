@@ -229,45 +229,37 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {client.cases.map((c) => (
-                            <Card
-                                key={c.id}
-                                className="cursor-pointer hover:shadow-md transition-shadow"
-                                onClick={() => setSelectedCase({ ...c, client: client } as any)}
-                            >
-                                <CardHeader className="p-4">
-                                    <div className="flex justify-between items-start">
-                                        <CardTitle className="text-base font-medium">
-                                            {c.caseNumber ? <span className="text-purple-600 mr-2">{c.caseNumber}</span> : null}
-                                            {c.title}
-                                        </CardTitle>
-                                    </div>
-                                    <div className="mt-2">
-                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Task</span>
-                                        <div className="text-sm font-semibold text-primary mt-1 px-2 py-1 bg-secondary rounded-md inline-block">
-                                            {c.status}
+                            <Link href={`/cases/${c.id}`} key={c.id}>
+                                <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+                                    <CardHeader className="p-4">
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="text-base font-medium">
+                                                {c.caseNumber ? <span className="text-purple-600 mr-2">{c.caseNumber}</span> : null}
+                                                {c.title}
+                                            </CardTitle>
                                         </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0">
-                                    <div className="text-sm text-muted-foreground space-y-1">
-                                        <p>Value: £{c.value?.toLocaleString() ?? 0}</p>
-                                        <p>Advisor: {c.advisor.name}</p>
-                                        <p>Broker: {c.brokerName || "N/A"}</p>
-                                        <p>Task Owner: {c.taskOwnerName || "N/A"}</p>
-                                        <p>Updated: {format(new Date(c.updatedAt), "dd/MM/yyyy")}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        <div className="mt-2">
+                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Task</span>
+                                            <div className="text-sm font-semibold text-primary mt-1 px-2 py-1 bg-secondary rounded-md inline-block">
+                                                {c.status}
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0">
+                                        <div className="text-sm text-muted-foreground space-y-1">
+                                            <p>Value: £{c.value?.toLocaleString() ?? 0}</p>
+                                            <p>Advisor: {c.advisor.name}</p>
+                                            <p>Broker: {c.brokerName || "N/A"}</p>
+                                            <p>Task Owner: {c.taskOwnerName || "N/A"}</p>
+                                            <p>Updated: {format(new Date(c.updatedAt), "dd/MM/yyyy")}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
                     </div>
                 )}
             </div>
-
-            <CaseDetailsSheet
-                caseItem={selectedCase}
-                open={!!selectedCase}
-                onOpenChange={(open) => !open && setSelectedCase(null)}
-            />
         </div>
     )
 }
