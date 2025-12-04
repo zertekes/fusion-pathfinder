@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { format } from "date-fns"
 import { COLUMNS } from "./TaskFlowBoard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type CaseWithRelations = Case & {
     client: Client
@@ -257,55 +258,83 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
 
                     {/* History & Comments Section */}
                     <div className="mt-6 border-t pt-4">
-                        <h3 className="font-semibold mb-4">History & Comments</h3>
+                        <Tabs defaultValue="comments" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 mb-4">
+                                <TabsTrigger value="comments">Comments</TabsTrigger>
+                                <TabsTrigger value="history">History</TabsTrigger>
+                            </TabsList>
 
-                        <div className="space-y-4 mb-4">
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Add a comment..."
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault()
-                                            handleAddComment()
-                                        }
-                                    }}
-                                />
-                                <Button
-                                    size="sm"
-                                    onClick={handleAddComment}
-                                    disabled={!newComment.trim() || isPostingComment}
-                                >
-                                    {isPostingComment ? "Posting..." : "Post"}
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {activities.map((activity) => (
-                                <div key={activity.id} className="flex gap-3 text-sm">
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold">
-                                                {activity.user?.name || "System"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {format(new Date(activity.createdAt), "PP p")}
-                                            </span>
-                                        </div>
-                                        <p className={`${activity.type === 'SYSTEM' ? 'text-muted-foreground italic' : ''}`}>
-                                            {activity.content}
-                                        </p>
-                                    </div>
+                            <TabsContent value="comments" className="space-y-4">
+                                <div className="flex gap-2 mb-4">
+                                    <Input
+                                        placeholder="Add a comment..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault()
+                                                handleAddComment()
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={handleAddComment}
+                                        disabled={!newComment.trim() || isPostingComment}
+                                    >
+                                        {isPostingComment ? "Posting..." : "Post"}
+                                    </Button>
                                 </div>
-                            ))}
-                            {activities.length === 0 && (
-                                <p className="text-sm text-muted-foreground text-center py-4">
-                                    No history yet.
-                                </p>
-                            )}
-                        </div>
+
+                                <div className="space-y-4">
+                                    {activities.filter(a => a.type === 'COMMENT').map((activity) => (
+                                        <div key={activity.id} className="flex gap-3 text-sm">
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-semibold">
+                                                        {activity.user?.name || "System"}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {format(new Date(activity.createdAt), "PP p")}
+                                                    </span>
+                                                </div>
+                                                <p>{activity.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {activities.filter(a => a.type === 'COMMENT').length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                            No comments yet.
+                                        </p>
+                                    )}
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="history" className="space-y-4">
+                                {activities.filter(a => a.type === 'SYSTEM').map((activity) => (
+                                    <div key={activity.id} className="flex gap-3 text-sm">
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-muted-foreground">
+                                                    System
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {format(new Date(activity.createdAt), "PP p")}
+                                                </span>
+                                            </div>
+                                            <p className="text-muted-foreground italic">
+                                                {activity.content}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {activities.filter(a => a.type === 'SYSTEM').length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                        No history yet.
+                                    </p>
+                                )}
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 </div>
             </ScrollArea>
