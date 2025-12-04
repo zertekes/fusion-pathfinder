@@ -45,7 +45,7 @@ export async function PATCH(
         }
 
         const body = await request.json()
-        const { status, title, value, brokerName, taskOwnerName } = body
+        const { title, status, value, brokerName, taskOwnerName, deadline } = body
 
         // Fetch current case to compare for system logs
         const currentCase = await prisma.case.findUnique({
@@ -55,11 +55,12 @@ export async function PATCH(
         const updatedCase = await prisma.case.update({
             where: { id: params.id },
             data: {
-                status,
                 title,
+                status,
                 value,
                 brokerName,
-                taskOwnerName
+                taskOwnerName,
+                deadline: deadline ? new Date(deadline) : null
             },
         })
 

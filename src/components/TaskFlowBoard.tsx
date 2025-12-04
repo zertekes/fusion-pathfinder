@@ -19,6 +19,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
 import { useDraggable, useDroppable } from "@dnd-kit/core"
+import { Flag } from "lucide-react"
 
 type CaseWithRelations = Case & {
     client: Client
@@ -197,13 +198,41 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     } : undefined
 
+    const getDeadlineColor = (deadline: Date | null) => {
+        if (!deadline) return null
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const d = new Date(deadline)
+        d.setHours(0, 0, 0, 0)
+
+        const diffTime = d.getTime() - today.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        if (diffDays < 0) return "text-red-600" // Overdue
+        if (diffDays === 0) return "text-red-600" // Today
+        if (diffDays === 1) return "text-orange-500" // Within 2 days (Tomorrow)
+        if (diffDays === 2) return "text-yellow-500" // Within 3 days
+        if (diffDays === 3) return "text-blue-500" // Within 4 days
+
+        return null
+    }
+
+    const flagColor = getDeadlineColor(caseItem.deadline ? new Date(caseItem.deadline) : null)
+
     return (
         <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
             <Card
-                className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+                className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow relative"
                 onClick={(e) => onClick(e, 'card')}
             >
                 <CardContent className="p-4">
+                    {flagColor && (
+                        <div className={`absolute top-2 right-2 ${flagColor}`}>
+                            <Flag className="h-4 w-4 fill-current" />
+                        </div>
+                    )}
                     <div className="font-medium text-center">
                         {caseItem.caseNumber && (
                             <span

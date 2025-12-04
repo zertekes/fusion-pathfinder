@@ -10,6 +10,7 @@ import { format } from "date-fns"
 import { COLUMNS } from "./TaskFlowBoard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DatePicker } from "@/components/ui/date-picker"
 
 type CaseWithRelations = Case & {
     client: Client
@@ -31,12 +32,20 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
     // Edit Mode State
     const [isEditMode, setIsEditMode] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
-    const [editData, setEditData] = useState({
+    const [editData, setEditData] = useState<{
+        title: string
+        status: string
+        value: number
+        brokerName: string
+        taskOwnerName: string
+        deadline?: Date | null
+    }>({
         title: "",
         status: "",
         value: 0,
         brokerName: "",
-        taskOwnerName: ""
+        taskOwnerName: "",
+        deadline: null
     })
 
     // Activity State
@@ -58,7 +67,8 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
                 status: caseItem.status,
                 value: caseItem.value || 0,
                 brokerName: caseItem.brokerName || "",
-                taskOwnerName: caseItem.taskOwnerName || ""
+                taskOwnerName: caseItem.taskOwnerName || "",
+                deadline: caseItem.deadline ? new Date(caseItem.deadline) : null
             })
         }
     }, [isEditMode, caseItem])
@@ -152,7 +162,7 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-1 min-h-0 h-full">
             <ScrollArea className="flex-1 -mx-6 px-6 my-4">
                 <div className="grid gap-4 py-4">
                     {/* Existing Details Fields */}
@@ -254,6 +264,21 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
                     <div className="grid grid-cols-4 items-center gap-4">
                         <span className="font-bold text-right">Notes:</span>
                         <span className="col-span-3 whitespace-pre-wrap">{caseItem.client.notes || "N/A"}</span>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <span className="font-bold text-right">Deadline:</span>
+                        {isEditMode ? (
+                            <div className="col-span-3">
+                                <DatePicker
+                                    date={editData.deadline ? new Date(editData.deadline) : undefined}
+                                    setDate={(date) => setEditData({ ...editData, deadline: date })}
+                                />
+                            </div>
+                        ) : (
+                            <span className="col-span-3">
+                                {caseItem.deadline ? format(new Date(caseItem.deadline), "PPP") : "No deadline"}
+                            </span>
+                        )}
                     </div>
 
                     {/* History & Comments Section */}
