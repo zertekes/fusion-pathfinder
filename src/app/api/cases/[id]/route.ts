@@ -12,14 +12,16 @@ export async function PATCH(
         // Add auth check here if needed
 
         const body = await request.json()
-        const { status, title, value } = body
+        const { status, title, value, brokerName, taskOwnerName } = body
 
         const updatedCase = await prisma.case.update({
             where: { id: params.id },
             data: {
                 status,
                 title,
-                value
+                value,
+                brokerName,
+                taskOwnerName
             },
         })
 

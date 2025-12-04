@@ -42,7 +42,9 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
     const [editData, setEditData] = useState({
         title: "",
         status: "",
-        value: 0
+        value: 0,
+        brokerName: "",
+        taskOwnerName: ""
     })
 
     // Initialize edit data when opening or switching to edit mode
@@ -50,7 +52,9 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
         setEditData({
             title: caseItem.title,
             status: caseItem.status,
-            value: caseItem.value || 0
+            value: caseItem.value || 0,
+            brokerName: caseItem.brokerName || "",
+            taskOwnerName: caseItem.taskOwnerName || ""
         })
     }
 
@@ -176,6 +180,32 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Advisor:</span>
                             <span className="col-span-3">{caseItem.advisor?.name ?? "Unassigned"}</span>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <span className="font-bold text-right">Broker:</span>
+                            {isEditMode ? (
+                                <Input
+                                    value={editData.brokerName}
+                                    onChange={(e) => setEditData({ ...editData, brokerName: e.target.value })}
+                                    className="col-span-3"
+                                    placeholder="Broker Name"
+                                />
+                            ) : (
+                                <span className="col-span-3">{caseItem.brokerName || "N/A"}</span>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <span className="font-bold text-right">Task Owner:</span>
+                            {isEditMode ? (
+                                <Input
+                                    value={editData.taskOwnerName}
+                                    onChange={(e) => setEditData({ ...editData, taskOwnerName: e.target.value })}
+                                    className="col-span-3"
+                                    placeholder="Task Owner Name"
+                                />
+                            ) : (
+                                <span className="col-span-3">{caseItem.taskOwnerName || "N/A"}</span>
+                            )}
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Updated:</span>

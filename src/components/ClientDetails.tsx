@@ -245,6 +245,8 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                                     <div className="text-sm text-muted-foreground space-y-1">
                                         <p>Value: £{c.value?.toLocaleString() ?? 0}</p>
                                         <p>Advisor: {c.advisor.name}</p>
+                                        <p>Broker: {c.brokerName || "N/A"}</p>
+                                        <p>Task Owner: {c.taskOwnerName || "N/A"}</p>
                                         <p>Updated: {format(new Date(c.updatedAt), "dd/MM/yyyy")}</p>
                                     </div>
                                 </CardContent>
