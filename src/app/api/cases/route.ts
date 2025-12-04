@@ -63,13 +63,14 @@ export async function POST(request: Request) {
 
         let nextNumber = 1
         if (lastCase && lastCase.caseNumber) {
-            const match = lastCase.caseNumber.match(/HT(\d+)/)
+            // Match either HTxxxx or HF-xxxx to continue sequence
+            const match = lastCase.caseNumber.match(/(?:HT|HF-)(\d+)/)
             if (match) {
                 nextNumber = parseInt(match[1]) + 1
             }
         }
 
-        const caseNumber = `HT${nextNumber.toString().padStart(4, '0')}`
+        const caseNumber = `HF-${nextNumber.toString().padStart(4, '0')}`
 
         const newCase = await prisma.case.create({
             data: {

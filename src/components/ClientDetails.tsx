@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Mail, Phone, MapPin, Pencil, Save, X } from "lucide-react"
 import Link from "next/link"
+import { format } from "date-fns"
 
 type ClientWithCases = Client & {
     cases: (Case & {
@@ -228,7 +229,10 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                             <Card key={c.id}>
                                 <CardHeader className="p-4">
                                     <div className="flex justify-between items-start">
-                                        <CardTitle className="text-base font-medium">{c.title}</CardTitle>
+                                        <CardTitle className="text-base font-medium">
+                                            {c.caseNumber ? <span className="text-purple-600 mr-2">{c.caseNumber}</span> : null}
+                                            {c.title}
+                                        </CardTitle>
                                     </div>
                                     <div className="mt-2">
                                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Task</span>
@@ -241,7 +245,7 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                                     <div className="text-sm text-muted-foreground space-y-1">
                                         <p>Value: £{c.value?.toLocaleString() ?? 0}</p>
                                         <p>Advisor: {c.advisor.name}</p>
-                                        <p>Updated: {new Date(c.updatedAt).toLocaleDateString()}</p>
+                                        <p>Updated: {format(new Date(c.updatedAt), "dd/MM/yyyy")}</p>
                                     </div>
                                 </CardContent>
                             </Card>

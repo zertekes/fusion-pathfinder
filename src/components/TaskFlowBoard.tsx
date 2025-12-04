@@ -218,6 +218,8 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
                             </span>
                         )}
                         {caseItem.client.name}
+                        {caseItem.client.name2 && `, ${caseItem.client.name2}`}
+                        {caseItem.client.name3 && `, ${caseItem.client.name3}`}
                     </div>
                 </CardContent>
             </Card>
