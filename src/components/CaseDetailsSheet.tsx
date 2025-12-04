@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Case, Client, User } from "@prisma/client"
 import {
@@ -46,6 +46,57 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
         brokerName: "",
         taskOwnerName: ""
     })
+
+    // Activity State
+    const [activities, setActivities] = useState<any[]>([])
+    const [newComment, setNewComment] = useState("")
+
+    useEffect(() => {
+        if (caseItem?.id && open) {
+            fetchActivities()
+        }
+    }, [caseItem?.id, open])
+
+    const fetchActivities = async () => {
+        if (!caseItem?.id) return
+        try {
+            const res = await fetch(`/api/cases/${caseItem.id}`)
+            if (res.ok) {
+                const data = await res.json()
+                if (data.activities) {
+                    setActivities(data.activities)
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch activities", error)
+        }
+    }
+
+    const [isPostingComment, setIsPostingComment] = useState(false)
+
+    const handleAddComment = async () => {
+        if (!newComment.trim() || !caseItem?.id) return
+
+        setIsPostingComment(true)
+        try {
+            const res = await fetch(`/api/cases/${caseItem.id}/comments`, {
+                method: "POST",
+                body: JSON.stringify({ content: newComment }),
+            })
+
+            if (res.ok) {
+                setNewComment("")
+                fetchActivities()
+            } else {
+                alert("Failed to post comment")
+            }
+        } catch (error) {
+            console.error("Failed to add comment", error)
+            alert("Error posting comment")
+        } finally {
+            setIsPostingComment(false)
+        }
+    }
 
     // Initialize edit data when opening or switching to edit mode
     if (caseItem && open && !isEditMode && (editData.title !== caseItem.title)) {
@@ -128,6 +179,7 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
 
                 <ScrollArea className="flex-1 -mx-6 px-6 my-4">
                     <div className="grid gap-4 py-4">
+                        {/* Existing Details Fields */}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Title:</span>
                             {isEditMode ? (
@@ -226,6 +278,59 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
                         <div className="grid grid-cols-4 items-center gap-4">
                             <span className="font-bold text-right">Notes:</span>
                             <span className="col-span-3 whitespace-pre-wrap">{caseItem.client.notes || "N/A"}</span>
+                        </div>
+
+                        {/* History & Comments Section */}
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="font-semibold mb-4">History & Comments</h3>
+
+                            <div className="space-y-4 mb-4">
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Add a comment..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault()
+                                                handleAddComment()
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={handleAddComment}
+                                        disabled={!newComment.trim() || isPostingComment}
+                                    >
+                                        {isPostingComment ? "Posting..." : "Post"}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {activities.map((activity) => (
+                                    <div key={activity.id} className="flex gap-3 text-sm">
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold">
+                                                    {activity.user?.name || "System"}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {format(new Date(activity.createdAt), "PP p")}
+                                                </span>
+                                            </div>
+                                            <p className={`${activity.type === 'SYSTEM' ? 'text-muted-foreground italic' : ''}`}>
+                                                {activity.content}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {activities.length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                        No history yet.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </ScrollArea>

@@ -22,10 +22,13 @@ interface ClientDetailsProps {
     client: ClientWithCases
 }
 
+import { CaseDetailsSheet } from "@/components/CaseDetailsSheet"
+
 export function ClientDetails({ client }: ClientDetailsProps) {
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedCase, setSelectedCase] = useState<any>(null)
     const [formData, setFormData] = useState({
         name: client.name || "",
         name2: client.name2 || "",
@@ -226,7 +229,11 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {client.cases.map((c) => (
-                            <Card key={c.id}>
+                            <Card
+                                key={c.id}
+                                className="cursor-pointer hover:shadow-md transition-shadow"
+                                onClick={() => setSelectedCase(c as any)}
+                            >
                                 <CardHeader className="p-4">
                                     <div className="flex justify-between items-start">
                                         <CardTitle className="text-base font-medium">
@@ -255,6 +262,12 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                     </div>
                 )}
             </div>
+
+            <CaseDetailsSheet
+                caseItem={selectedCase}
+                open={!!selectedCase}
+                onOpenChange={(open) => !open && setSelectedCase(null)}
+            />
         </div>
     )
 }

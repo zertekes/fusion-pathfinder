@@ -9,7 +9,11 @@ export default async function ClientsPage() {
         orderBy: { name: 'asc' },
         include: {
             cases: {
-                where: { status: { not: 'COMPLETED' } }
+                where: { status: { not: 'COMPLETED' } },
+                include: {
+                    advisor: true,
+                    client: true
+                }
             }
         }
     })

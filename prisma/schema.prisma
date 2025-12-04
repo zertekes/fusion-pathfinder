@@ -84,6 +84,7 @@ model Case {
   brokerName String?
   taskOwnerName String?
   tasks     Task[]
+  activities CaseActivity[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
