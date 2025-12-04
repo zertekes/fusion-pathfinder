@@ -21,9 +21,10 @@ interface CaseDetailsContentProps {
     caseItem: CaseWithRelations
     onClose?: () => void
     onDeleteSuccess?: () => void
+    onDirtyChange?: (isDirty: boolean) => void
 }
 
-export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseDetailsContentProps) {
+export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirtyChange }: CaseDetailsContentProps) {
     const router = useRouter()
     const [isDeleteMode, setIsDeleteMode] = useState(false)
     const [deleteConfirmation, setDeleteConfirmation] = useState("")
@@ -47,6 +48,40 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
         taskOwnerName: "",
         deadline: null
     })
+
+    // Track dirty state
+    useEffect(() => {
+        if (!isEditMode) {
+            onDirtyChange?.(false)
+            return
+        }
+
+        const isDirty =
+            editData.title !== caseItem.title ||
+            editData.status !== caseItem.status ||
+            editData.value !== (caseItem.value || 0) ||
+            editData.brokerName !== (caseItem.brokerName || "") ||
+            editData.taskOwnerName !== (caseItem.taskOwnerName || "") ||
+            (editData.deadline?.getTime() !== (caseItem.deadline ? new Date(caseItem.deadline).getTime() : undefined))
+
+        onDirtyChange?.(isDirty)
+
+        // Browser navigation protection
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault()
+                e.returnValue = ''
+            }
+        }
+
+        if (isDirty) {
+            window.addEventListener('beforeunload', handleBeforeUnload)
+        }
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
+    }, [isEditMode, editData, caseItem, onDirtyChange])
 
     // Activity State
     const [activities, setActivities] = useState<any[]>([])
@@ -369,7 +404,23 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess }: CaseD
                     <div className="flex gap-2 justify-end w-full">
                         {isEditMode ? (
                             <>
-                                <Button variant="ghost" onClick={() => setIsEditMode(false)}>
+                                <Button variant="ghost" onClick={() => {
+                                    const isDirty =
+                                        editData.title !== caseItem.title ||
+                                        editData.status !== caseItem.status ||
+                                        editData.value !== (caseItem.value || 0) ||
+                                        editData.brokerName !== (caseItem.brokerName || "") ||
+                                        editData.taskOwnerName !== (caseItem.taskOwnerName || "") ||
+                                        (editData.deadline?.getTime() !== (caseItem.deadline ? new Date(caseItem.deadline).getTime() : undefined))
+
+                                    if (isDirty) {
+                                        if (confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+                                            setIsEditMode(false)
+                                        }
+                                    } else {
+                                        setIsEditMode(false)
+                                    }
+                                }}>
                                     Cancel
                                 </Button>
                                 <Button onClick={handleSave} disabled={isSaving}>

@@ -99,13 +99,13 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
     }
 
     async function updateCaseStatus(caseId: string, newStatus: string) {
-        // Optimistic update
-        setCases(cases.map(c => c.id === caseId ? { ...c, status: newStatus } : c))
+        // Optimistic update: clear deadline when moving
+        setCases(cases.map(c => c.id === caseId ? { ...c, status: newStatus, deadline: null } : c))
 
         try {
             await fetch(`/api/cases/${caseId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ status: newStatus, deadline: null })
             })
             router.refresh()
         } catch (error) {
@@ -135,19 +135,44 @@ export function TaskFlowBoard({ initialCases }: TaskFlowBoardProps) {
                                     <DroppableColumn id={columnId}>
                                         {cases
                                             .filter((c) => c.status === columnId)
+                                            .sort((a, b) => {
+                                                // Sort overdue cases to the top
+                                                const getDeadlineTime = (c: CaseWithRelations) => {
+                                                    if (!c.deadline) return Infinity // No deadline -> bottom
+                                                    const d = new Date(c.deadline)
+                                                    const deadlineDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+                                                    const today = new Date()
+                                                    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                                                    return deadlineDate.getTime() - todayDate.getTime()
+                                                }
+
+                                                const timeA = getDeadlineTime(a)
+                                                const timeB = getDeadlineTime(b)
+
+                                                // If both are overdue (time < 0), sort by most overdue first? Or just keep them at top?
+                                                // User said "keep the card on the very top".
+                                                // Let's sort by deadline ascending (so most overdue is first, then today, then tomorrow...)
+                                                // But we only want to prioritize overdue.
+
+                                                const isOverdueA = timeA < 0
+                                                const isOverdueB = timeB < 0
+
+                                                if (isOverdueA && !isOverdueB) return -1
+                                                if (!isOverdueA && isOverdueB) return 1
+
+                                                // If both overdue or both not overdue, sort by deadline?
+                                                // Or maybe just by creation date if not overdue?
+                                                // Let's sort by deadline generally as it makes sense for a task board.
+                                                if (timeA !== timeB) return timeA - timeB
+
+                                                return 0
+                                            })
                                             .map((c) => (
                                                 <DraggableCase
                                                     key={c.id}
                                                     caseItem={c}
                                                     onClick={(e, type) => {
                                                         if (type === 'card') {
-                                                            // Optional: open full dialog on card click if needed, 
-                                                            // or just do nothing if only number click is desired.
-                                                            // For now, let's keep it consistent: card click -> full dialog? 
-                                                            // User asked for "click on it open the ticket details on the right side".
-                                                            // Let's make card click open the sheet too for better UX, or maybe the dialog?
-                                                            // The user said "when the user clicks on it [the number] open the ticket details".
-                                                            // Let's stick to the sheet for now for both.
                                                             setSelectedCase(c)
                                                         } else if (type === 'number') {
                                                             setSelectedCase(c)
@@ -212,7 +237,7 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
         // Calculate raw time difference for overdue check
         const diffTime = deadlineDate.getTime() - todayDate.getTime()
 
-        if (diffTime < 0) return "text-red-600" // Overdue
+        if (diffTime < 0) return "text-black" // Overdue (Yesterday or earlier)
         if (diffTime === 0) return "text-red-600" // Today
 
         // Count working days (Mon-Fri)

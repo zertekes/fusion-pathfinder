@@ -30,9 +30,13 @@ export function DatePicker({ date, setDate, className }: DatePickerProps) {
         }
     }
 
+    // Get today's date in YYYY-MM-DD format for min attribute
+    const today = new Date().toISOString().split('T')[0]
+
     return (
         <Input
             type="date"
+            min={today}
             value={dateString}
             onChange={handleChange}
             className={cn("w-full justify-start text-left font-normal", className)}
