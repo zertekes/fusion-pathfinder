@@ -232,7 +232,7 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                             <Card
                                 key={c.id}
                                 className="cursor-pointer hover:shadow-md transition-shadow"
-                                onClick={() => setSelectedCase(c as any)}
+                                onClick={() => setSelectedCase({ ...c, client: client } as any)}
                             >
                                 <CardHeader className="p-4">
                                     <div className="flex justify-between items-start">
