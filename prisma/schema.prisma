@@ -86,6 +86,7 @@ model Case {
   taskOwnerName String?
   tasks     Task[]
   activities CaseActivity[]
+  deadline   DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

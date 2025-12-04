@@ -100,7 +100,7 @@ export async function PATCH(
 
         return NextResponse.json(updatedCase)
     } catch (error) {
-        console.error("Failed to update case:", error)
+        console.error("Error updating case:", error)
         return NextResponse.json(
             { error: "Failed to update case" },
             { status: 500 }

@@ -202,18 +202,20 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
         if (!deadline) return null
 
         const today = new Date()
-        today.setHours(0, 0, 0, 0)
+        // Reset today to local midnight
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
         const d = new Date(deadline)
-        d.setHours(0, 0, 0, 0)
+        // Treat the stored UTC deadline as the intended local date (e.g., "2025-12-05" UTC -> "2025-12-05" Local)
+        const deadlineDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
 
-        const diffTime = d.getTime() - today.getTime()
+        const diffTime = deadlineDate.getTime() - todayDate.getTime()
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
         if (diffDays < 0) return "text-red-600" // Overdue
         if (diffDays === 0) return "text-red-600" // Today
         if (diffDays === 1) return "text-orange-500" // Within 2 days (Tomorrow)
-        if (diffDays === 2) return "text-yellow-500" // Within 3 days
+        if (diffDays === 2) return "text-yellow-300" // Within 3 days
         if (diffDays === 3) return "text-blue-500" // Within 4 days
 
         return null
