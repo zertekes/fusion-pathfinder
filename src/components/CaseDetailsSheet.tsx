@@ -30,11 +30,34 @@ interface CaseDetailsSheetProps {
 import { CaseDetailsContent } from "./CaseDetailsContent"
 
 export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSheetProps) {
+    const [isDirty, setIsDirty] = useState(false)
+
+    const handleOpenChange = (newOpen: boolean) => {
+        if (!newOpen && isDirty) {
+            if (!confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+                return
+            }
+        }
+        onOpenChange(newOpen)
+    }
+
     if (!caseItem) return null
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-[400px] sm:w-[540px] flex flex-col h-full">
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+            <SheetContent
+                className="w-[400px] sm:w-[540px] flex flex-col h-full"
+                onPointerDownOutside={(e) => {
+                    if (isDirty) {
+                        e.preventDefault()
+                    }
+                }}
+                onInteractOutside={(e) => {
+                    if (isDirty) {
+                        e.preventDefault()
+                    }
+                }}
+            >
                 <SheetHeader>
                     <SheetTitle>{caseItem.client.name}</SheetTitle>
                     <SheetDescription>
@@ -44,8 +67,12 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
 
                 <CaseDetailsContent
                     caseItem={caseItem}
-                    onClose={() => onOpenChange(false)}
-                    onDeleteSuccess={() => onOpenChange(false)}
+                    onClose={() => handleOpenChange(false)}
+                    onDeleteSuccess={() => {
+                        setIsDirty(false)
+                        onOpenChange(false)
+                    }}
+                    onDirtyChange={setIsDirty}
                 />
             </SheetContent>
         </Sheet>

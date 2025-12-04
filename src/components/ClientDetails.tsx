@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Client, Case, User } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -83,15 +83,50 @@ export function ClientDetails({ client }: ClientDetailsProps) {
         setIsEditing(false)
     }
 
+    // Track dirty state
+    const isDirty =
+        formData.name !== (client.name || "") ||
+        formData.name2 !== (client.name2 || "") ||
+        formData.name3 !== (client.name3 || "") ||
+        formData.email !== (client.email || "") ||
+        formData.phone !== (client.phone || "") ||
+        formData.address !== (client.address || "") ||
+        formData.notes !== (client.notes || "")
+
+    // Browser navigation protection
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isEditing && isDirty) {
+                e.preventDefault()
+                e.returnValue = ''
+            }
+        }
+
+        if (isEditing && isDirty) {
+            window.addEventListener('beforeunload', handleBeforeUnload)
+        }
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
+    }, [isEditing, isDirty])
+
+    const handleBack = () => {
+        if (isEditing && isDirty) {
+            if (!confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+                return
+            }
+        }
+        router.push("/clients")
+    }
+
     return (
         <div className="p-8 space-y-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link href="/clients">
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                    </Link>
+                    <Button variant="ghost" size="icon" onClick={handleBack}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
                     {isEditing ? (
                         <div className="space-y-2">
                             <Input
@@ -130,7 +165,15 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                     </Button>
                 ) : (
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+                        <Button variant="outline" onClick={() => {
+                            if (isDirty) {
+                                if (confirm("You have unsaved changes. Are you sure you want to discard them?")) {
+                                    handleCancel()
+                                }
+                            } else {
+                                handleCancel()
+                            }
+                        }} disabled={isLoading}>
                             <X className="mr-2 h-4 w-4" /> Cancel
                         </Button>
                         <Button onClick={handleSave} disabled={isLoading}>
