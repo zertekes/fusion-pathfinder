@@ -206,17 +206,31 @@ function DraggableCase({ caseItem, onClick }: { caseItem: CaseWithRelations, onC
         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
         const d = new Date(deadline)
-        // Treat the stored UTC deadline as the intended local date (e.g., "2025-12-05" UTC -> "2025-12-05" Local)
+        // Treat the stored UTC deadline as the intended local date
         const deadlineDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
 
+        // Calculate raw time difference for overdue check
         const diffTime = deadlineDate.getTime() - todayDate.getTime()
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-        if (diffDays < 0) return "text-red-600" // Overdue
-        if (diffDays === 0) return "text-red-600" // Today
-        if (diffDays === 1) return "text-orange-500" // Within 2 days (Tomorrow)
-        if (diffDays === 2) return "text-yellow-300" // Within 3 days
-        if (diffDays === 3) return "text-blue-500" // Within 4 days
+        if (diffTime < 0) return "text-red-600" // Overdue
+        if (diffTime === 0) return "text-red-600" // Today
+
+        // Count working days (Mon-Fri)
+        let workingDays = 0
+        let currentDate = new Date(todayDate)
+        currentDate.setDate(currentDate.getDate() + 1) // Start counting from tomorrow
+
+        while (currentDate <= deadlineDate) {
+            const day = currentDate.getDay()
+            if (day !== 0 && day !== 6) { // 0 is Sunday, 6 is Saturday
+                workingDays++
+            }
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+
+        if (workingDays === 1) return "text-orange-500" // Next working day
+        if (workingDays === 2) return "text-yellow-300" // 2 working days
+        if (workingDays === 3) return "text-blue-500" // 3 working days
 
         return null
     }
