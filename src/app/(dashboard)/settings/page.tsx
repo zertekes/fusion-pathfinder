@@ -8,6 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { prisma } from "@/lib/prisma"
 import { signIn } from "next-auth/react"
 import { EmailConnector } from "@/components/EmailConnector"
+import { UserManagement } from "@/components/settings/UserManagement"
 
 export default async function SettingsPage() {
     const session = await getServerSession(authOptions)
@@ -39,6 +40,7 @@ export default async function SettingsPage() {
                 <TabsList>
                     <TabsTrigger value="integrations">Integrations</TabsTrigger>
                     <TabsTrigger value="data">Data Management</TabsTrigger>
+                    <TabsTrigger value="admin">Admin</TabsTrigger>
                 </TabsList>
                 <TabsContent value="integrations" className="space-y-4">
                     <EmailConnector isConnected={isConnected} emailAddress={emailAddress} />
@@ -47,6 +49,9 @@ export default async function SettingsPage() {
                     <div className="max-w-xl">
                         <MigrationCard />
                     </div>
+                </TabsContent>
+                <TabsContent value="admin" className="space-y-4">
+                    <UserManagement />
                 </TabsContent>
             </Tabs>
         </div>

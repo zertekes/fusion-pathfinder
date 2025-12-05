@@ -127,3 +127,12 @@ model CaseActivity {
   content   String
   createdAt DateTime @default(now())
 }
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  token     String   @unique
+  role      String   @default("ADVISOR") // ADVISOR, ADMIN
+  expires   DateTime
+  createdAt DateTime @default(now())
+}

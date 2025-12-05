@@ -58,7 +58,6 @@ export function AddClientDialog() {
                     address: "",
                     notes: ""
                 })
-                onClientAdded()
             } else {
                 const errorData = await res.json()
                 toast.error(`Failed to create client: ${errorData.error || "Unknown error"}`)
