@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Client, Case, User } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Mail, Phone, MapPin, Pencil, Save, X } from "lucide-react"
+import { ArrowLeft, Mail, Phone, MapPin, Pencil } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
+import { ClientEditDialog } from "@/components/ClientEditDialog"
+import { CaseDetailsSheet } from "@/components/CaseDetailsSheet"
 
 type ClientWithCases = Client & {
     cases: (Case & {
@@ -22,165 +22,30 @@ interface ClientDetailsProps {
     client: ClientWithCases
 }
 
-import { CaseDetailsSheet } from "@/components/CaseDetailsSheet"
-
 export function ClientDetails({ client }: ClientDetailsProps) {
     const router = useRouter()
-    const [isEditing, setIsEditing] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [selectedCase, setSelectedCase] = useState<any>(null)
-    const [formData, setFormData] = useState({
-        name: client.name || "",
-        name2: client.name2 || "",
-        name3: client.name3 || "",
-        email: client.email || "",
-        phone: client.phone || "",
-        address: client.address || "",
-        notes: client.notes || "",
-    })
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
-
-    const handleSave = async () => {
-        setIsLoading(true)
-        try {
-            const res = await fetch(`/api/clients/${client.id}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            })
-
-            if (!res.ok) {
-                const errorData = await res.json()
-                throw new Error(errorData.error || "Failed to update client")
-            }
-
-            setIsEditing(false)
-            router.refresh()
-        } catch (error) {
-            console.error(error)
-            alert(error instanceof Error ? error.message : "Failed to update client")
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    const handleCancel = () => {
-        setFormData({
-            name: client.name || "",
-            name2: client.name2 || "",
-            name3: client.name3 || "",
-            email: client.email || "",
-            phone: client.phone || "",
-            address: client.address || "",
-            notes: client.notes || "",
-        })
-        setIsEditing(false)
-    }
-
-    // Track dirty state
-    const isDirty =
-        formData.name !== (client.name || "") ||
-        formData.name2 !== (client.name2 || "") ||
-        formData.name3 !== (client.name3 || "") ||
-        formData.email !== (client.email || "") ||
-        formData.phone !== (client.phone || "") ||
-        formData.address !== (client.address || "") ||
-        formData.notes !== (client.notes || "")
-
-    // Browser navigation protection
-    useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (isEditing && isDirty) {
-                e.preventDefault()
-                e.returnValue = ''
-            }
-        }
-
-        if (isEditing && isDirty) {
-            window.addEventListener('beforeunload', handleBeforeUnload)
-        }
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload)
-        }
-    }, [isEditing, isDirty])
-
-    const handleBack = () => {
-        if (isEditing && isDirty) {
-            if (!confirm("You have unsaved changes. Are you sure you want to discard them?")) {
-                return
-            }
-        }
-        router.push("/clients")
-    }
+    const [isCaseSheetOpen, setIsCaseSheetOpen] = useState(false)
 
     return (
         <div className="p-8 space-y-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={handleBack}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    {isEditing ? (
-                        <div className="space-y-2">
-                            <Input
-                                name="name"
-                                placeholder="Client Name 1 (Required)"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                className="text-3xl font-bold tracking-tight h-auto py-2 px-4 w-[400px]"
-                            />
-                            <Input
-                                name="name2"
-                                placeholder="Client Name 2 (Optional)"
-                                value={formData.name2}
-                                onChange={handleInputChange}
-                                className="text-xl font-medium h-auto py-1 px-4 w-[400px]"
-                            />
-                            <Input
-                                name="name3"
-                                placeholder="Client Name 3 (Optional)"
-                                value={formData.name3}
-                                onChange={handleInputChange}
-                                className="text-xl font-medium h-auto py-1 px-4 w-[400px]"
-                            />
-                        </div>
-                    ) : (
-                        <div>
-                            <h2 className="text-3xl font-bold tracking-tight">{client.name}</h2>
-                            {client.name2 && <h3 className="text-xl text-muted-foreground">{client.name2}</h3>}
-                            {client.name3 && <h3 className="text-xl text-muted-foreground">{client.name3}</h3>}
-                        </div>
-                    )}
-                </div>
-                {!isEditing ? (
-                    <Button onClick={() => setIsEditing(true)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit Client
-                    </Button>
-                ) : (
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => {
-                            if (isDirty) {
-                                if (confirm("You have unsaved changes. Are you sure you want to discard them?")) {
-                                    handleCancel()
-                                }
-                            } else {
-                                handleCancel()
-                            }
-                        }} disabled={isLoading}>
-                            <X className="mr-2 h-4 w-4" /> Cancel
+                    <Link href="/clients">
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-4 w-4" />
                         </Button>
-                        <Button onClick={handleSave} disabled={isLoading}>
-                            <Save className="mr-2 h-4 w-4" /> Save Changes
-                        </Button>
+                    </Link>
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight">{client.name}</h2>
+                        {client.name2 && <h3 className="text-xl text-muted-foreground">{client.name2}</h3>}
+                        {client.name3 && <h3 className="text-xl text-muted-foreground">{client.name3}</h3>}
                     </div>
-                )}
+                </div>
+                <Button onClick={() => setIsEditDialogOpen(true)}>
+                    <Pencil className="mr-2 h-4 w-4" /> Edit Client
+                </Button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -190,52 +55,25 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            {isEditing ? (
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                />
-                            ) : (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Mail className="h-4 w-4 text-muted-foreground" />
-                                    <span>{client.email || "No email"}</span>
-                                </div>
-                            )}
+                            <Label>Email</Label>
+                            <div className="flex items-center gap-2 text-sm">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <span>{client.email || "No email"}</span>
+                            </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">Phone</Label>
-                            {isEditing ? (
-                                <Input
-                                    id="phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                />
-                            ) : (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Phone className="h-4 w-4 text-muted-foreground" />
-                                    <span>{client.phone || "No phone"}</span>
-                                </div>
-                            )}
+                            <Label>Phone</Label>
+                            <div className="flex items-center gap-2 text-sm">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <span>{client.phone || "No phone"}</span>
+                            </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="address">Address</Label>
-                            {isEditing ? (
-                                <Input
-                                    id="address"
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                />
-                            ) : (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                                    <span>{client.address || "No address"}</span>
-                                </div>
-                            )}
+                            <Label>Address</Label>
+                            <div className="flex items-center gap-2 text-sm">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span>{client.address || "No address"}</span>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -245,18 +83,9 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                         <CardTitle>Notes</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {isEditing ? (
-                            <Textarea
-                                name="notes"
-                                value={formData.notes}
-                                onChange={handleInputChange}
-                                className="min-h-[150px]"
-                            />
-                        ) : (
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                {client.notes || "No notes available."}
-                            </p>
-                        )}
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                            {client.notes || "No notes available."}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -272,7 +101,10 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {client.cases.map((c) => (
-                            <Link href={`/cases/${c.id}`} key={c.id}>
+                            <div key={c.id} onClick={() => {
+                                setSelectedCase({ ...c, client })
+                                setIsCaseSheetOpen(true)
+                            }}>
                                 <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
                                     <CardHeader className="p-4">
                                         <div className="flex justify-between items-start">
@@ -298,11 +130,25 @@ export function ClientDetails({ client }: ClientDetailsProps) {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            <ClientEditDialog
+                client={client}
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                onSave={() => router.refresh()}
+            />
+
+            <CaseDetailsSheet
+                caseItem={selectedCase}
+                open={isCaseSheetOpen}
+                onOpenChange={setIsCaseSheetOpen}
+                fullScreen={true}
+            />
         </div>
     )
 }

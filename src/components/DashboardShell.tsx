@@ -10,7 +10,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return (
         <div className="h-full relative">
             <div className={cn(
-                "hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-[80] bg-gray-900 transition-all duration-300",
+                "hidden h-full md:flex md:flex-col md:fixed md:inset-y-0 z-[40] bg-gray-900 transition-all duration-300",
                 isCollapsed ? "md:w-20" : "md:w-72"
             )}>
                 <Sidebar isCollapsed={isCollapsed} toggleCollapse={() => setIsCollapsed(!isCollapsed)} />

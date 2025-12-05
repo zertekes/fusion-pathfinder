@@ -416,6 +416,15 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                                     if (isDirty) {
                                         if (confirm("You have unsaved changes. Are you sure you want to discard them?")) {
                                             setIsEditMode(false)
+                                            // Reset data
+                                            setEditData({
+                                                title: caseItem.title,
+                                                status: caseItem.status,
+                                                value: caseItem.value || 0,
+                                                brokerName: caseItem.brokerName || "",
+                                                taskOwnerName: caseItem.taskOwnerName || "",
+                                                deadline: caseItem.deadline ? new Date(caseItem.deadline) : null
+                                            })
                                         }
                                     } else {
                                         setIsEditMode(false)

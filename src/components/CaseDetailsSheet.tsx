@@ -21,15 +21,18 @@ type CaseWithRelations = Case & {
     advisor: User
 }
 
+import { cn } from "@/lib/utils"
+
 interface CaseDetailsSheetProps {
     caseItem: CaseWithRelations | null
     open: boolean
     onOpenChange: (open: boolean) => void
+    fullScreen?: boolean
 }
 
 import { CaseDetailsContent } from "./CaseDetailsContent"
 
-export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSheetProps) {
+export function CaseDetailsSheet({ caseItem, open, onOpenChange, fullScreen = false }: CaseDetailsSheetProps) {
     const [isDirty, setIsDirty] = useState(false)
 
     const handleOpenChange = (newOpen: boolean) => {
@@ -46,7 +49,10 @@ export function CaseDetailsSheet({ caseItem, open, onOpenChange }: CaseDetailsSh
     return (
         <Sheet open={open} onOpenChange={handleOpenChange}>
             <SheetContent
-                className="w-[400px] sm:w-[540px] flex flex-col h-full"
+                className={cn(
+                    "flex flex-col h-full",
+                    fullScreen ? "w-full sm:max-w-none" : "w-[400px] sm:w-[540px]"
+                )}
                 onPointerDownOutside={(e) => {
                     if (isDirty) {
                         e.preventDefault()
