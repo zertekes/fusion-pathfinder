@@ -22,6 +22,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus } from "lucide-react"
 import { Client } from "@prisma/client"
@@ -87,14 +89,15 @@ export function AddCaseDialog({ clients }: AddCaseDialogProps) {
                 setSelectedStatus(COLUMNS[0])
                 setActiveTab("existing")
                 setNewClientData({ name: "", name2: "", name3: "", email: "", phone: "" })
+                toast.success("Case created successfully!")
             } else {
                 const errorData = await res.json()
                 console.error("Failed to create case:", errorData)
-                alert(`Failed to create case: ${errorData.error || "Unknown error"}`)
+                toast.error(`Failed to create case: ${errorData.error || "Unknown error"}`)
             }
         } catch (error) {
             console.error("Error submitting form:", error)
-            alert("An error occurred. Check console.")
+            toast.error("An error occurred. Check console.")
         } finally {
             setLoading(false)
         }

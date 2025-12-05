@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 import { Plus } from "lucide-react"
 
 export function AddClientDialog() {
@@ -56,14 +58,14 @@ export function AddClientDialog() {
                     address: "",
                     notes: ""
                 })
+                onClientAdded()
             } else {
                 const errorData = await res.json()
-                console.error("Failed to create client:", errorData)
-                alert(`Failed to create client: ${errorData.error || "Unknown error"}`)
+                toast.error(`Failed to create client: ${errorData.error || "Unknown error"}`)
             }
         } catch (error) {
-            console.error("Error submitting form:", error)
-            alert("An error occurred. Check console.")
+            console.error("Failed to create client:", error)
+            toast.error("An error occurred. Check console.")
         } finally {
             setLoading(false)
         }

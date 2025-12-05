@@ -11,6 +11,17 @@ import { COLUMNS } from "./TaskFlowBoard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DatePicker } from "@/components/ui/date-picker"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 type CaseWithRelations = Case & {
     client: Client
@@ -29,6 +40,7 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
     const [isDeleteMode, setIsDeleteMode] = useState(false)
     const [deleteConfirmation, setDeleteConfirmation] = useState("")
     const [isDeleting, setIsDeleting] = useState(false)
+    const [showCancelAlert, setShowCancelAlert] = useState(false)
 
     // Edit Mode State
     const [isEditMode, setIsEditMode] = useState(false)
@@ -137,11 +149,11 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                 setNewComment("")
                 fetchActivities()
             } else {
-                alert("Failed to post comment")
+                toast.error("Failed to post comment")
             }
         } catch (error) {
             console.error("Failed to add comment", error)
-            alert("Error posting comment")
+            toast.error("Error posting comment")
         } finally {
             setIsPostingComment(false)
         }
@@ -160,11 +172,11 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                 router.refresh()
             } else {
                 console.error("Failed to update case")
-                alert("Failed to update case")
+                toast.error("Failed to update case")
             }
         } catch (error) {
             console.error("Error updating case:", error)
-            alert("Error updating case")
+            toast.error("Error updating case")
         } finally {
             setIsSaving(false)
         }
@@ -184,16 +196,30 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                 router.refresh()
             } else {
                 console.error("Failed to delete case")
-                alert("Failed to delete case")
+                toast.error("Failed to delete case")
             }
         } catch (error) {
             console.error("Error deleting case:", error)
-            alert("Error deleting case")
+            toast.error("Error deleting case")
         } finally {
             setIsDeleting(false)
             setIsDeleteMode(false)
             setDeleteConfirmation("")
         }
+    }
+
+    const handleDiscard = () => {
+        setIsEditMode(false)
+        setShowCancelAlert(false)
+        // Reset data
+        setEditData({
+            title: caseItem.title,
+            status: caseItem.status,
+            value: caseItem.value || 0,
+            brokerName: caseItem.brokerName || "",
+            taskOwnerName: caseItem.taskOwnerName || "",
+            deadline: caseItem.deadline ? new Date(caseItem.deadline) : null
+        })
     }
 
     return (
@@ -414,18 +440,7 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                                         (editData.deadline?.getTime() !== (caseItem.deadline ? new Date(caseItem.deadline).getTime() : undefined))
 
                                     if (isDirty) {
-                                        if (confirm("You have unsaved changes. Are you sure you want to discard them?")) {
-                                            setIsEditMode(false)
-                                            // Reset data
-                                            setEditData({
-                                                title: caseItem.title,
-                                                status: caseItem.status,
-                                                value: caseItem.value || 0,
-                                                brokerName: caseItem.brokerName || "",
-                                                taskOwnerName: caseItem.taskOwnerName || "",
-                                                deadline: caseItem.deadline ? new Date(caseItem.deadline) : null
-                                            })
-                                        }
+                                        setShowCancelAlert(true)
                                     } else {
                                         setIsEditMode(false)
                                     }
@@ -479,6 +494,23 @@ export function CaseDetailsContent({ caseItem, onClose, onDeleteSuccess, onDirty
                     </div>
                 )}
             </div>
+
+            <AlertDialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You have unsaved changes. Are you sure you want to discard them?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDiscard}>
+                            Discard Changes
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
